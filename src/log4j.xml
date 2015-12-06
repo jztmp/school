@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE log4j:configuration SYSTEM "log4j.dtd">
+<log4j:configuration xmlns:log4j="http://jakarta.apache.org/log4j/">
+	<!-- 控制台 ，开发环境使用 -->
+	<appender name="CONSOLE" class="org.apache.log4j.ConsoleAppender">
+		<param name="Threshold" value="ERROR" />
+		<param name="Target" value="System.out" />
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern" value="%t [%-5p] %C.%M(%L) - %m%n" />
+		</layout>
+	</appender>
+	<!-- 输出到文件 -->
+	<!-- 框架日志输出 -->
+	<appender name="BCSS_LOG" class="org.apache.log4j.DailyRollingFileAppender">
+		<param name="File" value="D:/logs/bcss.log" />
+		<param name="Append" value="true" />
+		<param name="DatePattern" value="'.'yyyy-MM-dd" />
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern" value="%d %t [%-5p] %C.%M(%L) - %m%n" />
+		</layout>
+	</appender>
+	<!-- 特殊日志输出 -->
+	<appender name="GPS_LOG" class="org.apache.log4j.DailyRollingFileAppender">
+		<param name="File" value="D:/logs/gps.log" />
+		<param name="Append" value="true" />
+		<param name="DatePattern" value="'.'yyyy-MM-dd" />
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern" value="%d %t [%-5p] %C.%M(%L) - %m%n" />
+		</layout>
+	</appender>
+	<!-- 业务日志输出 -->
+	<appender name="JOP_LOG" class="org.apache.log4j.DailyRollingFileAppender">
+		<param name="File" value="D:/logs/jop.log" />
+		<param name="Append" value="true" />
+		<param name="DatePattern" value="'.'yyyy-MM-dd" />
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern" value="%d %t [%-5p] %C.%M(%L) - %m%n" />
+		</layout>
+	</appender>
+	<!-- 默认的异步文件日志输出，生产环境都采用此appender -->
+	<appender name="ASYNC_BCSS_LOG" class="org.apache.log4j.AsyncAppender">
+		<param name="BufferSize" value="512" />
+		<param name="LocationInfo" value="true" />
+		<appender-ref ref="BCSS_LOG" />
+	</appender>
+	<appender name="ASYNC_JOP_LOG" class="org.apache.log4j.AsyncAppender">
+		<param name="BufferSize" value="512" />
+		<param name="LocationInfo" value="true" />
+		<appender-ref ref="JOP_LOG" />
+	</appender>
+	<appender name="ASYNC_GPS_LOG" class="org.apache.log4j.AsyncAppender">
+		<param name="BufferSize" value="512" />
+		<param name="LocationInfo" value="true" />
+		<appender-ref ref="GPS_LOG" />
+	</appender>
+	<!-- console 异步日志,开发环境都使用此appender，方便调试 -->
+	<appender name="ASYNC_CONSOLE" class="org.apache.log4j.AsyncAppender">
+		<param name="BufferSize" value="64" />
+		<param name="LocationInfo" value="true" />
+		<appender-ref ref="CONSOLE" />
+	</appender>
+
+
+	 <!-- 下面是打印mybatis语句的配置-->
+	 <logger name="com.ibatis" additivity="true"> 
+	  <level value="ERROR" /> 
+	 </logger> 
+	 <logger name="java.sql.Connection" additivity="true"> 
+	  <level value="ERROR" /> 
+	 </logger> 
+	 <logger name="java.sql.Statement" additivity="true"> 
+	  <level value="ERROR" /> 
+	 </logger> 
+	 <logger name="java.sql.PreparedStatement" additivity="true"> 
+	  <level value="ERROR" /> 
+	 </logger> 
+	 <logger name="java.sql.ResultSet" additivity="true"> 
+	  <level value="ERROR" /> 
+	 </logger> 
+ 
+	<category name="org">
+		<priority value="ERROR" />
+		<appender-ref ref="ASYNC_JOP_LOG" />
+	</category>
+	<category name="com.ztesoft">
+		<priority value="ERROR" />
+		<appender-ref ref="ASYNC_JOP_LOG" />
+		<appender-ref ref="ASYNC_CONSOLE" />
+	</category>
+	<category name="cn.com.bettle.net.socket.mina.BettleTestLineDecoder">
+		<priority value="INFO" />
+		<appender-ref ref="ASYNC_GPS_LOG" />
+	</category>
+	<!--
+	<category name="cn.com.bettle">
+		<priority value="ERROR" />
+		<appender-ref ref="ASYNC_BCSS_LOG" />
+		<appender-ref ref="ASYNC_CONSOLE" />
+	</category> 
+	-->
+	
+	<category name="cn.com.map">
+		<priority value="info" />
+		<appender-ref ref="ASYNC_BCSS_LOG" />
+		<appender-ref ref="ASYNC_CONSOLE" />
+	</category> 
+
+	<root>
+		<priority value="ERROR" />
+		<appender-ref ref="ASYNC_CONSOLE" />
+	</root>
+	
+</log4j:configuration>

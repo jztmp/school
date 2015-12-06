@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<items>
+
+   <!-- 具体数据库配置，实施人员进行配置,数据库注册 -->
+   <database>
+      <db database="nosqlDb" 	dbtype="mongodb"  	technology="bugu" 		dbid="mongodbBugu"/>
+      <db database="cache" 		dbtype="redis"  	technology="spring"/>
+      <db database="memoryDb" 	dbtype="memory" 	technology="mybatis" 	dbid="memoryMybatis"/>
+      <db database="mysqlDb" 	dbtype="oracle"  	technology="mybatis" 	dbid="mysqlMybatis"/>
+   </database>
+   
+   
+   <!-- 具体Dao配置，开发人员进行配置 -->
+   <daos>
+      <dao name="MySqlMap" 		database="mysqlDb" 	sqlMap="true"/> 
+      <dao name="MemorySqlMap" 	database="memoryDb" sqlMap="true"/> 
+   </daos>
+</items>

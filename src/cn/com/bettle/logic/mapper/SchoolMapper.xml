@@ -1,0 +1,966 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="school">
+
+
+	
+	
+<!-- getBusList -->	
+	<select id="getBusList" parameterType="java.util.Map" resultType="java.util.Map">
+		SELECT * FROM t_bus WHERE `STATE`='A'
+	</select>
+
+	<select id="getAllUsers" parameterType="java.util.Map" resultType="java.util.Map">
+		 	select * from  `t_user` a where a.`STATE` = 'A' 
+	</select>
+	<!--用户登陆-->
+	<select id="userLogin" parameterType="java.util.Map" resultType="java.util.Map">
+		 	select * from t_user where USER_NAME = #{USER_NAME} and PASSWORD = #{PASSWORD} 
+	</select>
+
+<!-- getDriversList -->	
+	<select id="getDriversList" parameterType="java.util.Map" resultType="java.util.Map">
+		SELECT * FROM `t_driver` WHERE `STATE`='A'
+	</select>
+
+
+<!-- getDriversBusList -->	
+	<select id="getDriversBusList" parameterType="java.util.Map" resultType="java.util.Map">
+		SELECT * FROM `t_bus_driver` WHERE `STATE`='A'
+	</select>	
+	
+
+
+<!-- getBusMemory -->		
+	<select id="getBusMemory" parameterType="java.util.Map" resultType="java.util.Map">
+		SELECT * FROM bus WHERE 1=1
+		 <if test="IMEI != '' and IMEI != null">
+		 	   and IMEI = #{IMEI}
+		 </if>
+	</select>
+	
+	<select id="getBusMemoryByBUSID" parameterType="java.util.Map" resultType="java.util.Map">
+		SELECT * FROM bus_gps WHERE BUS_ID = #{BUS_ID}		 	   
+	</select>
+	
+	
+    <select id="getBusMemoryByBusNumber" parameterType="java.util.Map" resultType="java.util.Map">
+		SELECT a.BUS_NUMBER,a.BUS_PLATE_NUMBER,a.IMEI,b.* FROM bus a, bus_gps b WHERE a.BUS_ID = b.BUS_ID
+		 <if test="BUS_NUMBER != '' and BUS_NUMBER != null">
+		 	   and a.BUS_NUMBER = #{BUS_NUMBER}
+		 </if>
+	</select>
+
+	
+<!-- getSchool -->
+	  <select id="getSchool_PAGE_" parameterType="java.util.Map" resultType="java.util.HashMap">
+		SELECT temp.* FROM ( 
+		
+			select * from  t_school where STATE = 'A'
+		 	<if test="SCHOOL_ID !='' and SCHOOL_ID != null">
+		 	   and SCHOOL_ID = #{SCHOOL_ID}
+		 	</if>
+	 
+			) temp limit #{pageLimit} offset #{pageStart}
+	 </select>
+	 
+	 <select id="getSchool_COUNT_" parameterType="java.util.Map" resultType="long">
+		 	select count(1) from t_school where STATE = 'A'
+		 	<if test="SCHOOL_ID !='' and SCHOOL_ID != null">
+		 	   and SCHOOL_ID = #{SCHOOL_ID}
+		 	</if>
+	 </select>
+	 
+	 
+<!-- getBus -->
+	  <select id="getBus_PAGE_" parameterType="java.util.Map" resultType="java.util.HashMap">
+		SELECT temp.* FROM ( 
+		
+			SELECT a.*,b.`USER_ID` FROM t_bus a LEFT JOIN (SELECT * FROM t_user_bus WHERE user_ID=#{USER_ID}) b ON a.`BUS_ID` = b.`BUS_ID` WHERE a.`STATE`='A'
+		 	<if test="BUS_ID!='' and BUS_ID != null">
+		 	   and a.BUS_ID = #{BUS_ID}
+		 	</if>
+	 
+			) temp limit #{pageLimit} offset #{pageStart}
+	 </select>
+	 
+	 <select id="getBus_COUNT_" parameterType="java.util.Map" resultType="long">
+		 	select count(1) from  t_bus where STATE = 'A'
+		 	<if test="BUS_ID!='' and BUS_ID != null">
+		 	   and BUS_ID = #{BUS_ID}
+		 	</if>
+	 </select>
+	 
+	 <select id="getBusRelation_PAGE_" parameterType="java.util.Map" resultType="java.util.HashMap">
+		select * from t_bus_relationship limit #{pageLimit} offset #{pageStart}
+	 </select>
+	 
+	 <select id="getBusRelation_COUNT_" parameterType="java.util.Map" resultType="long">
+		 	select count(1) from  t_bus_relationship
+	 </select>
+	 <insert id="saveBusRelation" parameterType="java.util.Map">
+	     insert into t_bus_relationship(BUS_NUMBER_FROM,BUS_NUMBER_TO) values(#{from},#{to})
+	 </insert>
+	 <delete id="deleteBusRelation" parameterType="java.util.Map">
+	 	delete from t_bus_relationship where RELATION_ID in
+		<foreach collection="ids" index="index" item="item" open="(" separator="," close=")">
+		   		 #{item.RELATION_ID}
+		</foreach>
+	</delete>
+
+<!-- getBusHistory -->
+	  <select id="getBusHistory_PAGE_" parameterType="java.util.Map" resultType="java.util.HashMap">
+		SELECT temp.* FROM ( 
+		
+	SELECT e.*,d.`DRIVER_ID`,d.`DRIVER_LAST_NAME`,d.`DRIVER_MOBILE`,d.`DRIVER_FIRST_NAME`,d.`DRIVER_NUMBER`,CONCAT(d.`DRIVER_FIRST_NAME` ,', ', d.`DRIVER_LAST_NAME`) DRIVER_NAME 
+    FROM t_driver d, t_bus_driver c,(SELECT a.`BUS_NUMBER`,a.`BUS_PLATE_NUMBER`,a.`IMEI`,b.*  FROM  `t_bus` a, `t_bus_gps` b WHERE a.`BUS_ID` = b.`BUS_ID` AND a.`STATE` ='A'
+	
+			<if test="BUS_ID!='' and BUS_ID != null">
+		 	   and a.BUS_ID = #{BUS_ID}
+		 	</if>
+	 		<if test="START_DATE !='' and START_DATE != null">
+		 	   and DATE_FORMAT(b.UTIME,GET_FORMAT(DATETIME,'JIS')) &gt;=  DATE_FORMAT('${START_DATE}',GET_FORMAT(DATETIME,'JIS'))
+		 	</if>
+		 	<if test="END_DATE !='' and END_DATE != null">
+		 	   and DATE_FORMAT(b.UTIME,GET_FORMAT(DATETIME,'JIS')) &lt;= DATE_FORMAT('${END_DATE}',GET_FORMAT(DATETIME,'JIS'))
+		 	</if>
+		 	<if test="SPEED !='' and SPEED != null">
+		 	    AND (b.SPEED) &gt; #{SPEED}		
+		 	</if>
+	
+	) e 
+	WHERE c.`BUS_ID` = e.`BUS_ID` AND d.`DRIVER_ID` = c.`DRIVER_ID` AND 
+	 DATE_FORMAT(e.UTIME,GET_FORMAT(DATETIME,'JIS')) &gt;=  DATE_FORMAT(c.`CREATE_TIME`,GET_FORMAT(DATETIME,'JIS'))
+	 AND
+	 DATE_FORMAT(e.UTIME,GET_FORMAT(DATETIME,'JIS')) &lt;=  DATE_FORMAT(c.`END_TIME`,GET_FORMAT(DATETIME,'JIS'))
+	
+		    <if test="DRIVER_NUMBER !='' and DRIVER_NUMBER != null">
+		 	   and d.DRIVER_NUMBER = #{DRIVER_NUMBER}
+		 	</if>
+		 	<if test="FIRST_NAME !='' and FIRST_NAME != null">
+		 	   and d.DRIVER_FIRST_NAME = #{FIRST_NAME}
+		 	</if>
+		 	<if test="LAST_NAME !='' and LAST_NAME != null">
+		 	   and d.DRIVER_LAST_NAME = #{LAST_NAME}
+		 	</if>
+		 	
+		 	order by e.UTIME DESC
+		 	
+		 	
+			) temp limit #{pageLimit} offset #{pageStart}
+	 </select>
+	 
+	 <select id="getBusHistory_COUNT_" parameterType="java.util.Map" resultType="long">
+
+			SELECT count(1) FROM t_driver d, t_bus_driver c,(SELECT a.`BUS_NUMBER`,a.`BUS_PLATE_NUMBER`,a.`IMEI`,b.* 
+	FROM  `t_bus` a, `t_bus_gps` b WHERE a.`BUS_ID` = b.`BUS_ID` AND a.`STATE` ='A'
+	
+			<if test="BUS_ID!='' and BUS_ID != null">
+		 	   and a.BUS_ID = #{BUS_ID}
+		 	</if>
+	 		<if test="START_DATE !='' and START_DATE != null">
+		 	   and DATE_FORMAT(b.UTIME,GET_FORMAT(DATETIME,'JIS')) &gt;=  DATE_FORMAT('${START_DATE}',GET_FORMAT(DATETIME,'JIS'))
+		 	</if>
+		 	<if test="END_DATE !='' and END_DATE != null">
+		 	   and DATE_FORMAT(b.UTIME,GET_FORMAT(DATETIME,'JIS')) &lt;= DATE_FORMAT('${END_DATE}',GET_FORMAT(DATETIME,'JIS'))
+		 	</if>
+		 	<if test="SPEED !='' and SPEED != null">
+		 	    AND (b.SPEED) &gt; #{SPEED}		
+		 	</if>
+	
+	) e 
+	WHERE c.`BUS_ID` = e.`BUS_ID` AND d.`DRIVER_ID` = c.`DRIVER_ID` AND 
+	 DATE_FORMAT(e.UTIME,GET_FORMAT(DATETIME,'JIS')) &gt;=  DATE_FORMAT(c.`CREATE_TIME`,GET_FORMAT(DATETIME,'JIS'))
+	 AND
+	 DATE_FORMAT(e.UTIME,GET_FORMAT(DATETIME,'JIS')) &lt;=  DATE_FORMAT(c.`END_TIME`,GET_FORMAT(DATETIME,'JIS'))
+	 
+	 
+	 		<if test="DRIVER_NUMBER !='' and DRIVER_NUMBER != null">
+		 	   and d.DRIVER_NUMBER = #{DRIVER_NUMBER}
+		 	</if>
+		 	<if test="FIRST_NAME !='' and FIRST_NAME != null">
+		 	   and d.DRIVER_FIRST_NAME = #{FIRST_NAME}
+		 	</if>
+		 	<if test="LAST_NAME !='' and LAST_NAME != null">
+		 	   and d.DRIVER_LAST_NAME = #{LAST_NAME}
+		 	</if>
+	 
+	 </select>	 	 
+	 
+	 
+	 
+	<select id="getBusHistoryForDistance" parameterType="java.util.Map" resultType="java.util.Map">
+
+		SELECT e.* FROM t_driver d, t_bus_driver c,(SELECT a.`BUS_NUMBER`,a.`BUS_PLATE_NUMBER`,a.`IMEI`,b.*  FROM  `t_bus` a, `t_bus_gps` b WHERE a.`BUS_ID` = b.`BUS_ID` AND a.`STATE` ='A'
+	
+			<if test="BUS_ID!='' and BUS_ID != null">
+		 	   and a.BUS_ID = #{BUS_ID}
+		 	</if>
+	 		<if test="START_DATE !='' and START_DATE != null">
+		 	   and DATE_FORMAT(DATE_SUB(b.UTIME, INTERVAL #{SUBTIME} HOUR),GET_FORMAT(DATE,'JIS')) &gt;=  STR_TO_DATE('${START_DATE}',GET_FORMAT(DATE,'JIS'))
+		 	</if>
+		 	<if test="END_DATE !='' and END_DATE != null">
+		 	   and DATE_FORMAT(DATE_SUB(b.UTIME, INTERVAL #{SUBTIME} HOUR),GET_FORMAT(DATE,'JIS')) &lt;= STR_TO_DATE('${END_DATE}',GET_FORMAT(DATE,'JIS'))
+		 	</if>
+		 	<if test="SPEED !='' and SPEED != null">
+		 	    AND (b.SPEED) &gt; #{SPEED}		
+		 	</if>
+	
+	) e 
+	WHERE c.`BUS_ID` = e.`BUS_ID` AND d.`DRIVER_ID` = c.`DRIVER_ID` AND 
+	 DATE_FORMAT(DATE_SUB(e.UTIME, INTERVAL #{SUBTIME} HOUR),GET_FORMAT(DATE,'JIS')) &gt;=  STR_TO_DATE(c.`CREATE_TIME`,GET_FORMAT(DATE,'JIS'))
+	 AND
+	 DATE_FORMAT(DATE_SUB(e.UTIME, INTERVAL #{SUBTIME} HOUR),GET_FORMAT(DATE,'JIS')) &lt;=  STR_TO_DATE(c.`END_TIME`,GET_FORMAT(DATE,'JIS'))
+	
+		    <if test="DRIVER_NUMBER !='' and DRIVER_NUMBER != null">
+		 	   and d.DRIVER_NUMBER = #{DRIVER_NUMBER}
+		 	</if>
+		 	<if test="FIRST_NAME !='' and FIRST_NAME != null">
+		 	   and d.DRIVER_FIRST_NAME = #{FIRST_NAME}
+		 	</if>
+		 	<if test="LAST_NAME !='' and LAST_NAME != null">
+		 	   and d.DRIVER_LAST_NAME = #{LAST_NAME}
+		 	</if>
+		 	
+		 	order by e.UTIME DESC
+	 
+	 </select>	
+	 
+<!-- getUsers -->
+	  <select id="getUsers_PAGE_" parameterType="java.util.Map" resultType="java.util.HashMap">
+		SELECT temp.* FROM ( 
+		
+		select * from `t_user` a where a.`STATE` = 'A' 
+	 		<if test="USER_NAME !='' and USER_NAME != null">
+		 	   and a.USER_NAME like '%${USER_NAME}%'
+		 	</if>
+		 	<if test="POWER_ID !='' and POWER_ID != null">
+		 	   and a.POWER_ID =  #{POWER_ID}
+		 	</if>
+		 	
+			) temp limit #{pageLimit} offset #{pageStart}
+	 </select>
+	 
+	 <select id="getUsers_COUNT_" parameterType="java.util.Map" resultType="long">
+	 	
+		 	select count(1) from  `t_user` a where a.`STATE` = 'A' 
+		 	<if test="USER_NAME !='' and USER_NAME != null">
+		 	   and a.USER_NAME like '%${USER_NAME}%'
+		 	</if>
+		 	<if test="POWER_ID !='' and POWER_ID != null">
+		 	   and a.POWER_ID =  #{POWER_ID}
+		 	</if>
+	 	
+	 </select>	 
+	 
+	 
+ 	
+	 
+	 
+<!-- queryBusByNumber -->
+	  <select id="queryBusByNumber_PAGE_" parameterType="java.util.Map" resultType="java.util.HashMap">
+		SELECT temp.* FROM ( 
+		
+			select * from  t_bus where STATE = 'A'
+		 	<if test="COMBOBOX_QUERY!='' and COMBOBOX_QUERY != null">
+		 	   and BUS_NUMBER like '%${COMBOBOX_QUERY}%'
+		 	</if>
+	 
+			) temp limit #{pageLimit} offset #{pageStart}
+	 </select>
+	 
+	 <select id="queryBusByNumber_COUNT_" parameterType="java.util.Map" resultType="long">
+	 	
+		 	select count(1) from  t_bus where STATE = 'A'
+		 	<if test="COMBOBOX_QUERY!='' and COMBOBOX_QUERY != null">
+		 	   and BUS_NUMBER like '%${COMBOBOX_QUERY}%'
+		 	</if>
+	 	
+	 </select>	 
+	 
+	 
+	 
+
+<!-- querysSchoolByNumber -->
+	  <select id="querysSchoolByNumber_PAGE_" parameterType="java.util.Map" resultType="java.util.HashMap">
+		SELECT temp.* FROM ( 
+		
+			SELECT * FROM `t_school` WHERE  STATE = 'A'
+		 	<if test="COMBOBOX_QUERY!='' and COMBOBOX_QUERY != null">
+		 	  and SCHOOL_NAME like '%${COMBOBOX_QUERY}%'
+		 	</if>
+	 
+			) temp limit #{pageLimit} offset #{pageStart}
+	 </select>
+	 
+	 <select id="querysSchoolByNumber_COUNT_" parameterType="java.util.Map" resultType="long">
+	 	
+		 	select count(1) from `t_school` WHERE  STATE = 'A'
+		 	<if test="COMBOBOX_QUERY!='' and COMBOBOX_QUERY != null">
+		 	   and SCHOOL_NAME like '%${COMBOBOX_QUERY}%'
+		 	</if>
+	 	
+	 </select>	 
+	 
+<!-- querysBusByNumber -->
+	  <select id="querysBusByNumber_PAGE_" parameterType="java.util.Map" resultType="java.util.HashMap">
+		SELECT temp.* FROM ( 
+		
+			SELECT * FROM t_bus  WHERE  STATE = 'A'
+		 	<if test="COMBOBOX_QUERY!='' and COMBOBOX_QUERY != null">
+		 	  and BUS_NUMBER like '%${COMBOBOX_QUERY}%'
+		 	</if>
+	 
+			) temp limit #{pageLimit} offset #{pageStart}
+	 </select>
+	 
+	 <select id="querysBusByNumber_COUNT_" parameterType="java.util.Map" resultType="long">
+	 	
+		 	select count(1) from t_bus WHERE  STATE = 'A'
+		 	<if test="COMBOBOX_QUERY!='' and COMBOBOX_QUERY != null">
+		 	    and BUS_NUMBER like '%${COMBOBOX_QUERY}%'
+		 	</if>
+	 	
+	 </select>		 
+	 
+
+<!-- getStudentBySchool -->
+	  <select id="getStudentBySchool_PAGE_" parameterType="java.util.Map" resultType="java.util.HashMap">
+		SELECT temp.* FROM ( 
+		
+		<if test="SCHOOL_ID !='' and SCHOOL_ID != null">
+			SELECT a.*, ( SELECT c.SCHOOL_NAME FROM t_school c WHERE b.SCHOOL_ID = c.SCHOOL_ID) AS SCHOOL_NAME,b.SCHOOL_ID
+					FROM t_student a, t_school_student b
+					WHERE a.STATE = 'A' AND b.STATE = 'A' AND a.STUDENT_ID = b.STUDENT_ID
+			 	<if test="SCHOOL_ID !='' and SCHOOL_ID != null">
+			 	   AND b.SCHOOL_ID =  #{SCHOOL_ID}
+			 	</if>
+	 			<if test="FIRST_NAME !='' and FIRST_NAME != null">
+			 	   AND a.STUDENT_FIRST_NAME =  #{FIRST_NAME}
+			 	</if>
+			 	<if test="LAST_NAME !='' and LAST_NAME != null">
+			 	   AND a.STUDENT_LAST_NAME =  #{LAST_NAME}
+			 	</if>
+			 	<if test="STUDENT_NUMBER !='' and STUDENT_NUMBER != null">
+			 	   AND a.STUDENT_NUMBER =  #{STUDENT_NUMBER}
+			 	</if>
+		</if>
+		
+		<if test="SCHOOL_ID =='' or SCHOOL_ID == null">
+		
+				SELECT a.* FROM t_student a WHERE a.STATE = 'A' 
+	 			<if test="FIRST_NAME !='' and FIRST_NAME != null">
+			 	   AND a.STUDENT_FIRST_NAME =  #{FIRST_NAME}
+			 	</if>
+			 	<if test="LAST_NAME !='' and LAST_NAME != null">
+			 	   AND a.STUDENT_LAST_NAME =  #{LAST_NAME}
+			 	</if>
+			 	<if test="STUDENT_NUMBER !='' and STUDENT_NUMBER != null">
+			 	   AND a.STUDENT_NUMBER =  #{STUDENT_NUMBER}
+			 	</if>
+		</if>
+			 	
+			 	
+			) temp limit #{pageLimit} offset #{pageStart}
+	 </select>
+	 
+	 <select id="getStudentBySchool_COUNT_" parameterType="java.util.Map" resultType="long">
+		<if test="SCHOOL_ID !='' and SCHOOL_ID != null">
+		 	select count(1) from t_student a,t_school_student b WHERE a.STATE = 'A' AND b.STATE ='A' AND a.STUDENT_ID = b.STUDENT_ID
+			 	<if test="SCHOOL_ID !='' and SCHOOL_ID != null">
+			 	   AND b.SCHOOL_ID =  #{SCHOOL_ID}
+			 	</if>
+	 			<if test="FIRST_NAME !='' and FIRST_NAME != null">
+			 	   AND a.STUDENT_FIRST_NAME =  #{FIRST_NAME}
+			 	</if>
+			 	<if test="LAST_NAME !='' and LAST_NAME != null">
+			 	   AND a.STUDENT_LAST_NAME =  #{LAST_NAME}
+			 	</if>
+			 	<if test="STUDENT_NUMBER !='' and STUDENT_NUMBER != null">
+			 	   AND a.STUDENT_NUMBER =  #{STUDENT_NUMBER}
+			 	</if>
+		</if>
+		
+		<if test="SCHOOL_ID =='' or SCHOOL_ID == null">
+		
+				SELECT count(1) FROM t_student a WHERE a.STATE = 'A' 
+	 			<if test="FIRST_NAME !='' and FIRST_NAME != null">
+			 	   AND a.STUDENT_FIRST_NAME =  #{FIRST_NAME}
+			 	</if>
+			 	<if test="LAST_NAME !='' and LAST_NAME != null">
+			 	   AND a.STUDENT_LAST_NAME =  #{LAST_NAME}
+			 	</if>
+			 	<if test="STUDENT_NUMBER !='' and STUDENT_NUMBER != null">
+			 	   AND a.STUDENT_NUMBER =  #{STUDENT_NUMBER}
+			 	</if>
+		</if> 	
+	 	
+	 </select>	
+
+
+<!-- getStudentBySchool2 -->
+	  <select id="getStudentBySchool2_PAGE_" parameterType="java.util.Map" resultType="java.util.HashMap">
+		SELECT temp.* FROM ( 
+		
+		<if test="SCHOOL_ID !='' and SCHOOL_ID != null">
+			SELECT CONCAT(a.`STUDENT_FIRST_NAME` ,' ', a.`STUDENT_LAST_NAME`) STUDENT_NAME,a.*,  c.`BOARDING_TIME`,d.`ALTITUDE`,d.`DIRECT`,d.`LATITUDE`,d.`LONGITUDE`,d.`SPEED`,d.`UTIME`,e.`BUS_NUMBER`,e.`BUS_PLATE_NUMBER`,e.`IMEI` 
+			FROM t_student a, t_school_student b, t_student_fingerprint c, t_bus_gps d, t_bus e
+WHERE a.STATE = 'A' AND b.STATE = 'A' AND a.STUDENT_ID = b.STUDENT_ID
+AND  c.`STATE` = 'A' AND c.`STUDENT_ID` = a.`STUDENT_ID` AND c.`FING_ID` = d.`FING_ID` AND e.`BUS_ID` = c.`BUS_ID` AND e.`BUS_ID` = d.`BUS_ID` AND e.`STATE`='A'
+			 	<if test="SCHOOL_ID !='' and SCHOOL_ID != null">
+			 	   AND b.SCHOOL_ID =  #{SCHOOL_ID}
+			 	</if>
+	 			<if test="FIRST_NAME !='' and FIRST_NAME != null">
+			 	   AND a.STUDENT_FIRST_NAME =  #{FIRST_NAME}
+			 	</if>
+			 	<if test="LAST_NAME !='' and LAST_NAME != null">
+			 	   AND a.STUDENT_LAST_NAME =  #{LAST_NAME}
+			 	</if>
+			 	<if test="STUDENT_NUMBER !='' and STUDENT_NUMBER != null">
+			 	   AND a.STUDENT_NUMBER =  #{STUDENT_NUMBER}
+			 	</if>
+			 	
+			 	<if test="START_DATE !='' and START_DATE != null">
+			 	   and DATE_FORMAT(DATE_SUB(c.`BOARDING_TIME`, INTERVAL 6 HOUR),GET_FORMAT(DATE,'JIS')) &gt;=  STR_TO_DATE('${START_DATE}',GET_FORMAT(DATE,'JIS'))
+			 	</if>
+			 	<if test="END_DATE !='' and END_DATE != null">
+			 	   and DATE_FORMAT(DATE_SUB(c.`BOARDING_TIME`, INTERVAL 6 HOUR),GET_FORMAT(DATE,'JIS')) &lt;= STR_TO_DATE('${END_DATE}',GET_FORMAT(DATE,'JIS'))
+			 	</if>
+		</if>
+		
+		<if test="SCHOOL_ID =='' or SCHOOL_ID == null">
+		
+			SELECT  CONCAT(a.`STUDENT_FIRST_NAME` ,' ', a.`STUDENT_LAST_NAME`) STUDENT_NAME,a.*,c.`BOARDING_TIME`,d.`ALTITUDE`,d.`DIRECT`,d.`LATITUDE`,d.`LONGITUDE`,d.`SPEED`,d.`UTIME`,e.`BUS_NUMBER`,e.`BUS_PLATE_NUMBER`,e.`IMEI` 
+					FROM t_student a, t_student_fingerprint c, t_bus_gps d, t_bus e
+					WHERE a.STATE = 'A' 
+					AND  c.`STATE` = 'A' 
+					AND c.`STUDENT_ID` = a.`STUDENT_ID` 
+					AND c.`FING_ID` = d.`FING_ID` 
+					AND e.`BUS_ID` = c.`BUS_ID` 
+					AND e.`BUS_ID` = d.`BUS_ID` 
+					AND e.`STATE`='A'
+	 			<if test="FIRST_NAME !='' and FIRST_NAME != null">
+			 	   AND a.STUDENT_FIRST_NAME =  #{FIRST_NAME}
+			 	</if>
+			 	<if test="LAST_NAME !='' and LAST_NAME != null">
+			 	   AND a.STUDENT_LAST_NAME =  #{LAST_NAME}
+			 	</if>
+			 	<if test="STUDENT_NUMBER !='' and STUDENT_NUMBER != null">
+			 	   AND a.STUDENT_NUMBER =  #{STUDENT_NUMBER}
+			 	</if>
+			 	
+			 	<if test="START_DATE !='' and START_DATE != null">
+			 	   and DATE_FORMAT(DATE_SUB(c.`BOARDING_TIME`, INTERVAL 6 HOUR),GET_FORMAT(DATE,'JIS')) &gt;=  STR_TO_DATE('${START_DATE}',GET_FORMAT(DATE,'JIS'))
+			 	</if>
+			 	<if test="END_DATE !='' and END_DATE != null">
+			 	   and DATE_FORMAT(DATE_SUB(c.`BOARDING_TIME`, INTERVAL 6 HOUR),GET_FORMAT(DATE,'JIS')) &lt;= STR_TO_DATE('${END_DATE}',GET_FORMAT(DATE,'JIS'))
+			 	</if>
+
+
+		</if>
+			 	ORDER BY c.BOARDING_TIME DESC
+
+			 	
+			) temp limit #{pageLimit} offset #{pageStart}
+	 </select>
+	 
+	 <select id="getStudentBySchool2_COUNT_" parameterType="java.util.Map" resultType="long">
+		<if test="SCHOOL_ID !='' and SCHOOL_ID != null">
+			SELECT count(1)
+			FROM t_student a, t_school_student b, t_student_fingerprint c, t_bus_gps d, t_bus e
+WHERE a.STATE = 'A' AND b.STATE = 'A' AND a.STUDENT_ID = b.STUDENT_ID
+AND  c.`STATE` = 'A' AND c.`STUDENT_ID` = a.`STUDENT_ID` AND c.`FING_ID` = d.`FING_ID` AND e.`BUS_ID` = c.`BUS_ID` AND e.`BUS_ID` = d.`BUS_ID` AND e.`STATE`='A'
+			 	<if test="SCHOOL_ID !='' and SCHOOL_ID != null">
+			 	   AND b.SCHOOL_ID =  #{SCHOOL_ID}
+			 	</if>
+	 			<if test="FIRST_NAME !='' and FIRST_NAME != null">
+			 	   AND a.STUDENT_FIRST_NAME =  #{FIRST_NAME}
+			 	</if>
+			 	<if test="LAST_NAME !='' and LAST_NAME != null">
+			 	   AND a.STUDENT_LAST_NAME =  #{LAST_NAME}
+			 	</if>
+			 	<if test="STUDENT_NUMBER !='' and STUDENT_NUMBER != null">
+			 	   AND a.STUDENT_NUMBER =  #{STUDENT_NUMBER}
+			 	</if>
+			 	
+			 	<if test="START_DATE !='' and START_DATE != null">
+			 	   and DATE_FORMAT(DATE_SUB(c.`BOARDING_TIME`, INTERVAL 6 HOUR),GET_FORMAT(DATE,'JIS')) &gt;=  STR_TO_DATE('${START_DATE}',GET_FORMAT(DATE,'JIS'))
+			 	</if>
+			 	<if test="END_DATE !='' and END_DATE != null">
+			 	   and DATE_FORMAT(DATE_SUB(c.`BOARDING_TIME`, INTERVAL 6 HOUR),GET_FORMAT(DATE,'JIS')) &lt;= STR_TO_DATE('${END_DATE}',GET_FORMAT(DATE,'JIS'))
+			 	</if>
+		</if>
+		
+		<if test="SCHOOL_ID =='' or SCHOOL_ID == null">
+		
+			SELECT  count(1)
+					FROM t_student a, t_student_fingerprint c, t_bus_gps d, t_bus e
+					WHERE a.STATE = 'A' 
+					AND  c.`STATE` = 'A' 
+					AND c.`STUDENT_ID` = a.`STUDENT_ID` 
+					AND c.`FING_ID` = d.`FING_ID` 
+					AND e.`BUS_ID` = c.`BUS_ID` 
+					AND e.`BUS_ID` = d.`BUS_ID` 
+					AND e.`STATE`='A'
+	 			<if test="FIRST_NAME !='' and FIRST_NAME != null">
+			 	   AND a.STUDENT_FIRST_NAME =  #{FIRST_NAME}
+			 	</if>
+			 	<if test="LAST_NAME !='' and LAST_NAME != null">
+			 	   AND a.STUDENT_LAST_NAME =  #{LAST_NAME}
+			 	</if>
+			 	<if test="STUDENT_NUMBER !='' and STUDENT_NUMBER != null">
+			 	   AND a.STUDENT_NUMBER =  #{STUDENT_NUMBER}
+			 	</if>
+			 	
+			 	<if test="START_DATE !='' and START_DATE != null">
+			 	   and DATE_FORMAT(DATE_SUB(c.`BOARDING_TIME`, INTERVAL 6 HOUR),GET_FORMAT(DATE,'JIS')) &gt;=  STR_TO_DATE('${START_DATE}',GET_FORMAT(DATE,'JIS'))
+			 	</if>
+			 	<if test="END_DATE !='' and END_DATE != null">
+			 	   and DATE_FORMAT(DATE_SUB(c.`BOARDING_TIME`, INTERVAL 6 HOUR),GET_FORMAT(DATE,'JIS')) &lt;= STR_TO_DATE('${END_DATE}',GET_FORMAT(DATE,'JIS'))
+			 	</if>
+		</if> 	
+	 	
+	 </select>	
+	 
+	 
+<!-- saveGps -->
+<!-- {"gpsDate":"2013-09-23 20:53:26","latitude":34.69719833333333,"longitude":-86.58504666666667,"altitude":0.0,"speed":0.0,"direct":87.17,"studentId":"0002","studentData":"2013-09-24 04:20:40"} -->
+	<insert id="saveGps" parameterType="java.util.Map">
+		insert into t_bus_gps (BUS_ID,LATITUDE, LONGITUDE, ALTITUDE, UTIME, SPEED, DIRECT, STATE,FING_ID)
+		values (#{BUS_ID}, #{latitude}, #{longitude}, #{altitude}, #{gpsDate}, #{speed}, #{direct}, 'A',#{FING_ID})
+	</insert>
+	
+<!-- getStudent -->		
+	<select id="getStudent" parameterType="java.util.Map" resultType="java.util.Map">
+		SELECT * FROM t_student WHERE STATE = 'A'
+		 <if test="STUDENT_NUMBER != '' and STUDENT_NUMBER != null">
+		 	   and STUDENT_NUMBER = #{STUDENT_NUMBER}
+		 </if>
+		 <if test="studentId != '' and studentId != null"> <!-- 来自指纹仪 -->
+		 	   and STUDENT_NUMBER = #{studentId}
+		 </if>
+		 
+	</select>
+	
+	
+<!-- getParents -->		
+	<select id="getParents" parameterType="java.util.Map" resultType="java.util.Map">
+		SELECT * FROM t_parents a,t_user b, t_parents_student c WHERE a.`USER_ID` = b.`USER_ID` AND c.`PARENT_ID` = a.`USER_ID`
+AND b.`STATE` = 'A' 
+		 <if test="STUDENT_ID != '' and STUDENT_ID != null">
+		 	   and c.STUDENT_ID = #{STUDENT_ID}
+		 </if>
+	</select>
+
+    <select id="getParentsByBusNumber" parameterType="java.util.Map" resultType="java.util.Map">
+		SELECT * FROM t_bus_parents WHERE BUS_NUMBER in 
+		<foreach collection="numbers" index="index" item="item" open="(" separator="," close=")">
+		   		 #{item.BUS_NUMBER}
+			</foreach>
+	</select>
+	<update id="updateParentSms" parameterType="java.util.Map" >
+	     update t_bus_parents set SMS=#{message} WHERE BUS_NUMBER in 
+		<foreach collection="numbers" index="index" item="item" open="(" separator="," close=")">
+		   		 #{item.BUS_NUMBER}
+			</foreach> 
+	</update>
+
+<!-- getParentsByName -->		
+	  <select id="getParentsByName_PAGE_" parameterType="java.util.Map" resultType="java.util.HashMap">
+		SELECT temp.* FROM ( 
+		
+				SELECT DISTINCT b.USER_ID,  b.USER_REAL_NAME,b.USER_NAME,b.MOBILE,b.EMAIL, a.ADDRESS,a.SEX,a.WORK_ADDRESS,a.WORK_TEL FROM t_parents a,t_user b WHERE a.USER_ID = b.USER_ID 
+AND b.STATE = 'A' 
+			 	<if test="COMBOBOX_QUERY !='' and COMBOBOX_QUERY != null">
+			 	   AND b.USER_REAL_NAME like '%${COMBOBOX_QUERY}%'
+			 	</if>
+	 
+			) temp limit #{pageLimit} offset #{pageStart}
+	 </select>
+	 
+	 <select id="getParentsByName_COUNT_" parameterType="java.util.Map" resultType="long">
+
+		 	SELECT COUNT(temp.USER_ID) FROM (
+		 	
+		 	SELECT DISTINCT b.USER_ID FROM t_parents a,t_user b WHERE a.USER_ID = b.USER_ID 
+AND b.STATE = 'A' 
+				<if test="COMBOBOX_QUERY !='' and COMBOBOX_QUERY != null">
+			 	   AND b.USER_REAL_NAME like '%${COMBOBOX_QUERY}%'
+			 	</if>
+
+) temp
+		 	
+	 	
+	 </select>	
+	
+<!-- saveStudentFingerprint -->	
+	<insert id="saveStudentFingerprint" parameterType="java.util.Map">
+		insert into t_student_fingerprint (STUDENT_ID,BOARDING_TIME,BUS_ID,STATE,FING_ID)
+		values (#{STUDENT_ID}, #{studentData}, #{BUS_ID}, 'A', #{FING_ID})
+	</insert>	
+
+
+<!-- saveStudent -->	
+	<insert id="saveStudent" parameterType="java.util.Map">
+		insert into t_student (STUDENT_ID,STUDENT_FIRST_NAME,STUDENT_NUMBER,STUDENT_SEX,STUDENT_MOBILE,STUDENT_ADDRESS,STUDENT_LAST_NAME)
+		values (#{STUDENT_ID}, #{STUDENT_FIRST_NAME},#{STUDENT_NUMBER},#{STUDENT_SEX},#{STUDENT_MOBILE},#{STUDENT_ADDRESS},#{STUDENT_LAST_NAME})
+	</insert>	
+<!-- saveParentsStudent -->	
+	<insert id="saveParentsStudent" parameterType="java.util.Map">
+		insert into t_parents_student (PARENT_ID,STUDENT_ID)
+		values (#{PARENT_ID}, #{STUDENT_ID})
+	</insert>	
+	
+
+<!-- saveStudentSchool -->	
+	<insert id="saveStudentSchool" parameterType="java.util.Map">
+		insert into t_school_student (SCHOOL_ID,STUDENT_ID)
+		values (#{SCHOOL_ID}, #{STUDENT_ID})
+	</insert>	
+		
+<!-- saveSchool -->	
+	<insert id="saveSchool" parameterType="java.util.Map">
+		insert into t_school (SCHOOL_ID,SCHOOL_NAME,SCHOOL_ADDRESS)
+		values (#{SCHOOL_ID}, #{SCHOOL_NAME}, #{SCHOOL_ADDRESS})
+	</insert>	
+
+
+    <select id="getAllBusGpsMemory" parameterType="java.util.Map" resultType="java.util.Map">
+        select a.LATITUDE,a.LONGITUDE,a.UTIME,b.BUS_NUMBER from bus_gps a, bus b where a.BUS_ID=b.BUS_ID
+    </select>
+<!-- getGpsMemory -->
+	<select id="getGpsMemory" parameterType="java.util.Map" resultType="java.util.Map">
+		
+SELECT a.ALTITUDE,a.DIRECT,a.FING_ID,a.LATITUDE,a.LONGITUDE,a.SPEED,a.UTIME,e.*,CONCAT(e.DRIVER_LAST_NAME,', ',e.DRIVER_FIRST_NAME) DRIVER_NAME FROM bus_gps a,( 
+SELECT b.BUS_ID,b.BUS_NUMBER,b.BUS_PLATE_NUMBER,b.IMEI,c.DRIVER_FIRST_NAME,c.DRIVER_ID,c.DRIVER_LAST_NAME,c.DRIVER_MOBILE,c.DRIVER_NUMBER,c.DRIVER_SEX,d.CREATE_TIME,d.END_TIME FROM
+bus b ,driver c ,bus_driver d 
+WHERE b.BUS_ID = d.BUS_ID AND c.DRIVER_ID = d.DRIVER_ID 
+) e
+WHERE a.BUS_ID = e.BUS_ID
+AND a.UTIME &gt;= e.CREATE_TIME
+AND a.UTIME &lt;= e.END_TIME
+		
+		
+		  <if test="BUSES !='' and BUSES != null">
+		  AND e.BUS_ID  in 
+		  	<foreach collection="BUSES" index="index" item="item" open="(" separator="," close=")">
+		   		 #{item.BUS_ID}
+			</foreach>
+			
+		  </if>
+	</select>
+	
+<!-- saveGpsMemory -->
+	<insert id="saveGpsMemory" parameterType="java.util.Map">
+		insert into bus_gps (BUS_ID,LATITUDE, LONGITUDE, ALTITUDE, UTIME, SPEED, DIRECT)
+		values (#{BUS_ID}, #{latitude}, #{longitude}, #{altitude}, #{gpsDate}, #{speed}, #{direct})
+	</insert>
+	 
+<!-- deletedGpsMemory -->
+	<delete id="deletedGpsMemory" parameterType="java.util.Map">
+		delete from bus_gps where BUS_ID=#{BUS_ID}
+	</delete>	
+	
+<!-- getNewBusId -->
+	<select id="getNewBusId" parameterType="java.util.Map">
+		SELECT MAX(BUS_ID)+1 AS BUS_ID FROM `t_bus` WHERE `STATE`='A'
+	</select>		
+	
+<!-- saveBusMemory -->	
+	<insert id="saveBusMemory" parameterType="java.util.Map">
+
+			insert into bus (BUS_ID ,BUS_NUMBER ,BUS_PLATE_NUMBER ,IMEI)
+			values (#{BUS_ID}, #{BUS_NUMBER}, #{BUS_PLATE_NUMBER}, #{IMEI})
+
+	</insert>	
+	
+<!-- saveDriversMemory -->	
+	<insert id="saveDriversMemory" parameterType="java.util.Map">
+
+			insert into driver (    DRIVER_ID,DRIVER_NUMBER,DRIVER_FIRST_NAME,DRIVER_LAST_NAME,DRIVER_SEX,DRIVER_MOBILE,CREATE_TIME )
+			values (#{DRIVER_ID}, #{DRIVER_NUMBER}, #{DRIVER_FIRST_NAME}, #{DRIVER_LAST_NAME}, #{DRIVER_SEX}, #{DRIVER_MOBILE}, #{CREATE_TIME} )
+
+	</insert>
+
+<!-- saveDriversBusMemory -->	
+	<insert id="saveDriversBusMemory" parameterType="java.util.Map">
+
+			insert into bus_driver (    DRIVER_ID,BUS_ID,CREATE_TIME,END_TIME )
+			values (#{DRIVER_ID}, #{BUS_ID}, #{CREATE_TIME}, #{END_TIME} )
+
+	</insert>	
+			
+	
+<!-- saveBus -->	
+	<insert id="saveBus" parameterType="java.util.Map">
+		insert into t_bus (BUS_ID,BUS_NUMBER ,BUS_PLATE_NUMBER ,IMEI,STATE)
+		values (#{BUS_ID},#{BUS_NUMBER}, #{BUS_PLATE_NUMBER}, #{IMEI},'A')
+	</insert>
+	
+	<insert id="saveDefaultBus" parameterType="java.util.Map">
+		insert into t_user_bus (USER_ID,BUS_ID)
+		values (#{USER_ID},#{BUS_ID})
+	</insert>
+	<delete id="deleteUserDefaultCar" parameterType="java.util.Map">
+		 	DELETE FROM  t_user_bus  where USER_ID = #{USER_ID}
+	</delete>
+
+
+<!-- getUser -->
+	<select id="getUser" parameterType="java.util.Map" resultType="java.util.Map">
+		select * from t_user where  STATE = 'A'
+			<if test="USER_NAME !='' and USER_NAME != null">
+			 	and USER_NAME  = #{USER_NAME}
+			</if>
+	</select>	
+	
+<!-- saveUser -->	
+	<select id="getUserMaxId" parameterType="java.util.Map" resultType="java.util.Map">
+		SELECT MAX(USER_ID)+1 MAX_USER_ID  FROM t_user 
+	</select>	
+
+	<insert id="saveUser" parameterType="java.util.Map">
+		insert into t_user (USER_ID,USER_NAME,PASSWORD ,EMAIL ,TEL,MOBILE,POWER_ID,FIRST_NAME,LAST_NAME,STATE,USER_REAL_NAME)
+		values (#{USER_ID},#{USER_NAME},#{PASSWORD}, #{EMAIL}, #{TEL}, #{MOBILE}, #{POWER_ID}, #{FIRST_NAME}, #{LAST_NAME},'A',#{USER_REAL_NAME})
+	</insert>		
+	
+	
+<!-- saveParents -->	
+	<insert id="saveParents" parameterType="java.util.Map">
+		insert into t_parents (USER_ID,ADDRESS ,SEX ,WORK_ADDRESS,WORK_TEL)
+		values (#{USER_ID},#{ADDRESS}, #{SEX}, #{WORK_ADDRESS},#{WORK_TEL})
+	</insert>		
+	
+	
+<!-- saveTeacher -->	
+	<insert id="saveTeacher" parameterType="java.util.Map">
+		insert into t_teacher (USER_ID,WORK_TEL ,SEX )
+		values (#{USER_ID},#{WORK_TEL}, #{SEX})
+	</insert>	
+
+<!-- saveTeacherSchool -->	
+	<insert id="saveTeacherSchool" parameterType="java.util.Map">
+		INSERT INTO t_school_teacher (SCHOOL_ID,TEACHER_ID)
+				VALUES (#{SCHOOL_ID},#{USER_ID})
+	</insert>	
+
+<!-- deleteUser -->	
+	<update id="deleteUser" parameterType="java.util.Map">
+	 	UPDATE t_user SET STATE = 'X' where USER_ID in
+		<foreach collection="USERS" index="index" item="item" open="(" separator="," close=")">
+		   		 #{item.USER_ID}
+		</foreach>
+	</update>
+	
+	
+	<update id="deleteTeacher" parameterType="java.util.Map">
+	 	UPDATE t_teacher SET STATE = 'X' where USER_ID in
+		<foreach collection="USERS" index="index" item="item" open="(" separator="," close=")">
+		   		 #{item.USER_ID}
+		</foreach>
+	</update>	
+	
+	<update id="deleteSchoolTeacher" parameterType="java.util.Map">
+	 	UPDATE t_school_teacher SET STATE = 'X' where TEACHER_ID in
+		<foreach collection="USERS" index="index" item="item" open="(" separator="," close=")">
+		   		 #{item.USER_ID}
+		</foreach>
+	</update>	
+
+	<update id="deleteParents" parameterType="java.util.Map">
+	 	UPDATE t_parents SET STATE = 'X' where USER_ID in
+		<foreach collection="USERS" index="index" item="item" open="(" separator="," close=")">
+		   		 #{item.USER_ID}
+		</foreach>
+	</update>	
+	
+	
+<!-- deleteBus -->	
+	<update id="deleteBus" parameterType="java.util.Map">
+	 	UPDATE t_bus SET STATE = 'X' where BUS_ID in
+		<foreach collection="BUSES" index="index" item="item" open="(" separator="," close=")">
+		   		 #{item.BUS_ID}
+		</foreach>
+	</update>
+	
+	<update id="deleteBusDriver" parameterType="java.util.Map">
+	 	UPDATE t_bus_driver SET STATE = 'X' where BUS_ID in
+		<foreach collection="BUSES" index="index" item="item" open="(" separator="," close=")">
+		   		 #{item.BUS_ID}
+		</foreach>
+	</update>
+	
+	<delete id="deleteBus2" parameterType="java.util.Map">
+		 	DELETE FROM  bus  where BUS_ID in
+		<foreach collection="BUSES" index="index" item="item" open="(" separator="," close=")">
+		   		 #{item.BUS_ID}
+		</foreach>
+	</delete>
+	
+	<delete id="deleteBus3" parameterType="java.util.Map">
+		 	DELETE FROM  bus_gps  where BUS_ID in
+		<foreach collection="BUSES" index="index" item="item" open="(" separator="," close=")">
+		   		 #{item.BUS_ID}
+		</foreach>
+	</delete>
+	
+    <delete id="deleteBus4" parameterType="java.util.Map">
+		 	DELETE FROM  bus_driver  where BUS_ID in
+		<foreach collection="BUSES" index="index" item="item" open="(" separator="," close=")">
+		   		 #{item.BUS_ID}
+		</foreach>
+	</delete>
+	
+<!-- deleteStudnets -->	
+	<update id="deleteStudnets" parameterType="java.util.Map">
+	 	UPDATE t_student SET STATE = 'X' where STUDENT_ID in
+		<foreach collection="STUDNETS" index="index" item="item" open="(" separator="," close=")">
+		   		 #{item.STUDENT_ID}
+		</foreach>
+	</update>	
+	<update id="deleteParentsStudnets" parameterType="java.util.Map">
+	 	UPDATE t_parents_student SET STATE = 'X' where STUDENT_ID in
+		<foreach collection="STUDNETS" index="index" item="item" open="(" separator="," close=")">
+		   		 #{item.STUDENT_ID}
+		</foreach>
+	</update>
+	<update id="deleteSchoolStudnets" parameterType="java.util.Map">
+	 	UPDATE t_school_student SET STATE = 'X' where STUDENT_ID in
+		<foreach collection="STUDNETS" index="index" item="item" open="(" separator="," close=")">
+		   		 #{item.STUDENT_ID}
+		</foreach>
+	</update>		
+	
+	
+<!-- deleteSchools -->		
+	<update id="deleteSchools" parameterType="java.util.Map">
+	 	UPDATE t_school SET STATE = 'X' where SCHOOL_ID in
+		<foreach collection="SCHOOLS" index="index" item="item" open="(" separator="," close=")">
+		   		 #{item.SCHOOL_ID}
+		</foreach>
+	</update>	
+	
+	
+	
+
+
+
+<!-- getDriverByName -->		
+	  <select id="getDriverByName_PAGE_" parameterType="java.util.Map" resultType="java.util.HashMap">
+		SELECT temp.* FROM ( 
+		
+			SELECT t.*,b.`BUS_ID`,b.`BUS_NUMBER`,b.`BUS_PLATE_NUMBER` FROM t_driver t,`t_bus_driver` a ,`t_bus` b WHERE t.`STATE` = 'A' AND b.`STATE` = 'A'
+AND a.`STATE`='A' AND t.`DRIVER_ID` = a.`DRIVER_ID` AND a.`BUS_ID` = b.`BUS_ID`
+	 			<if test="FIRST_NAME !='' and FIRST_NAME != null">
+			 	   AND t.DRIVER_FIRST_NAME = #{FIRST_NAME}
+			 	</if>
+			 	<if test="LAST_NAME !='' and LAST_NAME != null">
+			 	   AND t.DRIVER_LAST_NAME = #{LAST_NAME}
+			 	</if>
+	 	
+			) temp limit #{pageLimit} offset #{pageStart}
+	 </select>
+	 
+	 <select id="getDriverByName_COUNT_" parameterType="java.util.Map" resultType="long">
+
+		SELECT COUNT(1) FROM t_driver t,`t_bus_driver` a ,`t_bus` b WHERE t.`STATE` = 'A' AND b.`STATE` = 'A'
+AND a.`STATE`='A' AND t.`DRIVER_ID` = a.`DRIVER_ID` AND a.`BUS_ID` = b.`BUS_ID`
+	 			<if test="FIRST_NAME !='' and FIRST_NAME != null">
+			 	   AND t.DRIVER_FIRST_NAME = #{FIRST_NAME}
+			 	</if>
+			 	<if test="LAST_NAME !='' and LAST_NAME != null">
+			 	   AND t.DRIVER_LAST_NAME = #{LAST_NAME}
+			 	</if>
+	 	
+	 </select>	
+	
+<!-- saveDriver -->	
+	<insert id="saveDriver" parameterType="java.util.Map">
+		INSERT INTO t_driver (DRIVER_ID,DRIVER_NUMBER,DRIVER_FIRST_NAME,DRIVER_LAST_NAME,DRIVER_SEX,DRIVER_MOBILE)
+				VALUES (#{DRIVER_ID},#{DRIVER_NUMBER},#{DRIVER_FIRST_NAME},#{DRIVER_LAST_NAME},#{DRIVER_SEX},#{DRIVER_MOBILE})
+	</insert>	
+	
+	<insert id="saveDriverBus" parameterType="java.util.Map">
+		INSERT INTO t_bus_driver (BUS_ID,DRIVER_ID,END_TIME)
+				VALUES (#{BUS_ID},#{DRIVER_ID},STR_TO_DATE('2032-01-01 00:00:00','%Y-%m-%d %H:%i:%s'))
+	</insert>	
+	
+	
+	<insert id="saveDriverMemory2" parameterType="java.util.Map">
+		INSERT INTO driver (DRIVER_ID,DRIVER_NUMBER,DRIVER_FIRST_NAME,DRIVER_LAST_NAME,DRIVER_SEX,DRIVER_MOBILE,CREATE_TIME)
+				VALUES (#{DRIVER_ID},#{DRIVER_NUMBER},#{DRIVER_FIRST_NAME},#{DRIVER_LAST_NAME},#{DRIVER_SEX},#{DRIVER_MOBILE},now())
+	</insert>	
+	
+	<insert id="saveDriverBusMemory2" parameterType="java.util.Map">
+		INSERT INTO bus_driver (BUS_ID,DRIVER_ID,CREATE_TIME,END_TIME)
+				VALUES (#{BUS_ID},#{DRIVER_ID},now(),'2032-01-01 00:00:00')
+	</insert>	
+<!-- deleteDriver -->	
+	<delete id="deleteDriverMemory" parameterType="java.util.Map">
+		 	DELETE FROM driver  where DRIVER_ID in
+		<foreach collection="DRIVERS" index="index" item="item" open="(" separator="," close=")">
+		   		 #{item.DRIVER_ID}
+		</foreach>
+	</delete>
+	<delete id="deleteDriverBusMemory" parameterType="java.util.Map">
+		 	DELETE FROM  bus_driver  where DRIVER_ID in
+		<foreach collection="DRIVERS" index="index" item="item" open="(" separator="," close=")">
+		   		 #{item.DRIVER_ID}
+		</foreach>
+	</delete>	
+	<update id="deleteDriver" parameterType="java.util.Map">
+	 	UPDATE t_driver SET STATE = 'X' where DRIVER_ID in
+		<foreach collection="DRIVERS" index="index" item="item" open="(" separator="," close=")">
+		   		 #{item.DRIVER_ID}
+		</foreach>
+	</update>	
+	<update id="deleteDriverBus" parameterType="java.util.Map">
+	 	UPDATE t_bus_driver SET STATE = 'X' where DRIVER_ID in
+		<foreach collection="DRIVERS" index="index" item="item" open="(" separator="," close=")">
+		   		 #{item.DRIVER_ID}
+		</foreach>
+	</update>		
+	
+	
+	<select id="getbusbyparents" parameterType="java.util.Map" resultType="java.util.Map">
+	    SELECT * FROM t_bus_parents a LEFT JOIN t_bus_relationship b ON a.BUS_NUMBER = b.BUS_NUMBER_FROM WHERE a.PARENTS_ID=#{PID}
+	</select>
+	
+	<select id="getCurrentByIMEI" parameterType="java.util.Map" resultType="java.util.Map">		   
+		SELECT b.* FROM bus a , bus_gps b WHERE a.BUS_ID = b.BUS_ID AND a.IMEI=#{BUS_IMEI}
+	</select>
+	
+	<select id="getCurrentByNUMBER" parameterType="java.util.Map" resultType="java.util.Map">		   
+		SELECT b.* FROM bus a , bus_gps b WHERE a.BUS_ID = b.BUS_ID AND a.BUS_NUMBER =#{BUS_NUMBER_TO}
+	</select>
+
+	<select id="getodb2HistryGPS_PAGE_" parameterType="java.util.Map"
+		resultType="java.util.HashMap">
+	 	SELECT b.UTIME,b.LATITUDE,b.LONGITUDE FROM `t_bus_gps` b,`t_bus` a,`t_bus_parents` c WHERE c.Parents_ID = #{PID} AND a.IMEI = c.BUS_IMEI AND a.BUS_ID = b.BUS_ID  AND a.`STATE` ='A' ORDER BY b.UTIME DESC limit ${pageLimit} offset ${pageStart}
+	</select>
+
+	<select id="getodb2HistryGPS_COUNT_" parameterType="java.util.Map"
+		resultType="long">
+		SELECT count(1) FROM `t_bus_gps` b,`t_bus` a,`t_bus_parents` c WHERE c.Parents_ID = #{PID} AND a.IMEI = c.BUS_IMEI AND a.BUS_ID = b.BUS_ID  AND a.`STATE` ='A'
+	 
+	</select>
+	
+	<select id="getBusfromto" parameterType="java.util.Map"
+		resultType="java.util.HashMap">
+	 	SELECT BUS_ID FROM (SELECT * FROM t_bus_parents a LEFT JOIN t_bus_relationship b ON a.BUS_NUMBER = b.BUS_NUMBER_FROM  WHERE a.Parents_ID = #{PID} ) d,t_bus c WHERE c.`STATE`='A' AND c.BUS_NUMBER=d.BUS_NUMBER_TO
+	</select>
+	
+	<select id="getBusfHistryGPS_PAGE_" parameterType="java.util.Map"
+		resultType="java.util.HashMap">	 	
+	 	SELECT UTIME,LATITUDE,LONGITUDE FROM `t_bus_gps` WHERE BUS_ID=#{BUS_ID} ORDER BY UTIME DESC limit ${pageLimit} offset ${pageStart}
+	</select>
+
+	<select id="getBusfHistryGPS_COUNT_" parameterType="java.util.Map"
+		resultType="long">
+		SELECT count(1) FROM `t_bus_gps` WHERE BUS_ID=#{BUS_ID} 	 
+	</select>
+		
+</mapper>

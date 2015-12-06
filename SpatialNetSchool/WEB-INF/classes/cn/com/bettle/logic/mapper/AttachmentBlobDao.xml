@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.com.bettle.logic.mapper.AttachmentBlobDao">
+
+	<!-- ############################## -->
+	<!-- ###### 增加 ###### -->
+	<!-- ############################## -->
+
+	<insert id="addAttachmentBlob" parameterType="cn.com.bettle.net.entity.AttachmentBlob">
+		insert into
+		T_ATTACHMENT_BLOB(attachmentid,attachment)
+		values(#{attachmentId},#{attachment,jdbcType=BLOB})
+	</insert>
+
+	<!-- ############################## -->
+	<!-- ###### 删除 ###### -->
+	<!-- ############################## -->
+
+	<delete id="deleteAttachmentBlob" parameterType="long">
+		delete from
+		T_ATTACHMENT_BLOB where attachmentId=#{attachmentId}
+	</delete>
+
+	<!-- ############################## -->
+	<!-- ###### 查询 ###### -->
+	<!-- ############################## -->
+
+	<select id="getAttachmentBlobById" resultType="cn.com.bettle.net.entity.AttachmentBlob">
+		select * from T_ATTACHMENT_BLOB where
+		attachmentId=#{attachmentId}
+	</select>
+
+	<select id="getAttachmentBlobList" resultType="cn.com.bettle.net.entity.AttachmentBlob">
+		select *
+		  from (select A.*, rownum rn
+		          from ( select ATTACHMENTID,PATH from T_ATTACHMENT_BLOB
+		          	where attachmentid > #{attachmentId}
+					order by attachmentid ) A
+		         where rownum &lt;= #{endRowNum})
+		 where rn &gt; #{offset}
+	</select>
+
+	<select id="getAttachmentBlobCount" resultType="long">
+		select count(1) from T_ATTACHMENT_BLOB
+	</select>
+
+</mapper>  

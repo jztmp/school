@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.com.bettle.logic.mapper.AttachmentDao">
+
+	<!-- ############################## -->
+	<!-- ###### 增加 ###### -->
+	<!-- ############################## -->
+
+	<select id="getNextVal" resultType="long">
+		select SEQ_T_ATTACHMENT.nextVal from dual
+	</select>
+
+	<insert id="addAttachment" parameterType="cn.com.bettle.net.entity.Attachment">
+		insert into
+		T_ATTACHMENT(attachmentId,kindId,name,description,path,fileSize,type,kind,status,createTime)
+		values(#{attachmentId},#{kindId,jdbcType=VARCHAR},#{name},#{description,jdbcType=VARCHAR},#{path},#{fileSize},#{type,jdbcType=VARCHAR},#{kind},#{status},#{createTime})
+	</insert>
+
+	<!-- ############################## -->
+	<!-- ###### 删除 ###### -->
+	<!-- ############################## -->
+
+	<delete id="deleteAttachment">
+		delete from
+		T_ATTACHMENT where attachmentId=#{attachmentId}
+	</delete>
+
+	<!-- ############################## -->
+	<!-- ###### 修改 ###### -->
+	<!-- ############################## -->
+
+	<update id="updateStatusByAttachmentId">
+		update T_ATTACHMENT
+		set
+		status=#{status}
+		where
+		attachmentId=#{attachmentId}
+	</update>
+
+	<update id="updateDescriptionByAttachmentId">
+		update T_ATTACHMENT
+		set
+		<if test="name !=null">name=#{name},</if>
+		description=#{description}
+		where
+		attachmentId=#{attachmentId}
+	</update>
+	
+	<update id="updateAttachment" parameterType="cn.com.bettle.net.entity.Attachment">
+		update T_ATTACHMENT
+		set
+		kindId=#{kindId}, kind = #{kind}
+		where
+		attachmentId=#{attachmentId}
+	</update>
+
+	<!-- ############################## -->
+	<!-- ###### 查询 ###### -->
+	<!-- ############################## -->
+
+	<select id="getAttachmentById" resultType="cn.com.bettle.net.entity.Attachment">
+		select * from
+		T_ATTACHMENT where
+		attachmentId=#{attachmentId}
+	</select>
+
+	<select id="getAttachmentsByKindId" resultType="cn.com.bettle.net.entity.Attachment">
+		select *
+		from T_ATTACHMENT where kindId=#{kindId} and kind = #{kind}
+		and status = #{status}
+	</select>
+
+	<select id="getAttachmentCountByKindId" resultType="int">
+		select
+		count(*)
+		from T_ATTACHMENT where kindId=#{kindId} and kind = #{kind}
+		and status = #{status}
+	</select>
+
+	<select id="getAttachmentCountByKind" resultType="int">
+		select
+		count(*)
+		from T_ATTACHMENT where kind = #{kind} and status = #{status}
+	</select>
+</mapper>  

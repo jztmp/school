@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xmlns:context="http://www.springframework.org/schema/context" xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+						http://www.springframework.org/schema/beans/spring-beans-3.2.xsd 
+						http://www.springframework.org/schema/mvc
+						http://www.springframework.org/schema/mvc/spring-mvc-3.2.xsd
+				        http://www.springframework.org/schema/context
+				        http://www.springframework.org/schema/context/spring-context-3.2.xsd
+				        http://www.springframework.org/schema/util
+				        http://www.springframework.org/schema/util/spring-util-3.2.xsd">
+
+	<!-- 启动包扫描功能，以便注册带有@Controller的注解类成为spring的bean -->
+	<context:component-scan base-package="cn.com.bettle"
+		use-default-filters="false">
+		<!-- 扫描符合@Controller的类 -->
+		<context:include-filter type="annotation"
+			expression="org.springframework.stereotype.Controller" />
+	</context:component-scan>
+	<!-- 注解映射 -->
+	<mvc:annotation-driven />
+	<!-- 静态资源映射 -->
+	<mvc:default-servlet-handler />
+	<!--默认访问跳转到登录页面，即定义无Controller的path<->view直接映射 -->
+	<mvc:view-controller path="/" view-name="redirect:/index.html" />
+
+	<!-- FreeMarker的配置 -->
+	<bean id="freeMarkerConfig"
+		class="org.springframework.web.servlet.view.freemarker.FreeMarkerConfigurer">
+		<property name="templateLoaderPath" value="/WEB-INF/ftl/" /><!-- 
+			指定路径 -->
+		<property name="defaultEncoding" value="UTF-8" /><!-- 指定编码格式 -->
+		<property name="freemarkerVariables">
+			<map>
+			</map>
+		</property>
+		<property name="freemarkerSettings">
+			<props>
+				<prop key="template_update_delay">10</prop>
+				<prop key="defaultEncoding">UTF-8</prop>
+				<prop key="url_escaping_charset">UTF-8</prop>
+				<prop key="locale">zh_CN</prop>
+				<prop key="boolean_format">true,false</prop>
+				<prop key="time_format">HH:mm:ss</prop>
+				<prop key="datetime_format">yyyy-MM-dd HH:mm:ss</prop>
+				<prop key="date_format">yyyy-MM-dd</prop>
+				<prop key="number_format">#.##</prop>
+				<prop key="whitespace_stripping">true</prop>
+			</props>
+		</property>
+	</bean>
+
+	<bean
+		class="org.springframework.web.servlet.view.ContentNegotiatingViewResolver">
+		<property name="order" value="1" />
+		<!-- 扩展名至mimeType的映射,即 /user.json => application/json -->
+		<property name="favorPathExtension" value="true" />
+		<!-- 用于开启 /userinfo/123?format=json 的支持 -->
+		<property name="favorParameter" value="false" />
+		<property name="parameterName" value="format" />
+		<!-- 设置为true以忽略对Accept Header的支持 -->
+		<property name="ignoreAcceptHeader" value="true" />
+		<!-- 在没有扩展名时即: "/user/1" 时的默认展现形式 -->
+		<property name="defaultContentType" value="text/plain" />
+		<property name="mediaTypes">
+			<map>
+				<!-- 静态页面，使用htm后缀(文件格式) -->
+				<entry key="html" value="text/html" />
+				<entry key="json" value="text/plain" />
+				<entry key="xml" value="application/xml" />
+			</map>
+		</property>
+		<property name="viewResolvers">
+			<list>
+				<!-- 配置 FreeMarker视图解析器 -->
+				<bean id="freeMarkerViewResolver"
+					class="org.springframework.web.servlet.view.freemarker.FreeMarkerViewResolver">
+					<property name="viewClass"
+						value="org.springframework.web.servlet.view.freemarker.FreeMarkerView"></property>
+					<property name="cache" value="false" />
+					<property name="prefix" value="/" />
+					<property name="suffix" value=".ftl" /><!-- 可为空,方便实现自已的依据扩展名来选择视图解释类的逻辑 -->
+					<property name="contentType" value="text/html;charset=UTF-8" />
+					<property name="exposeRequestAttributes" value="true" />
+					<property name="exposeSessionAttributes" value="true" />
+					<property name="exposeSpringMacroHelpers" value="true" />
+				</bean>
+			</list>
+		</property>
+		<property name="defaultViews">
+			<list>
+				<!-- for application/json -->
+				<bean class="cn.com.bettle.net.servlet.view.json.MappingJacksonJsonView">
+					<property name="extractValueFromSingleKeyModel">
+						<value>true</value>
+					</property>
+				</bean>
+
+				<!-- for application/xml -->
+				<bean class="org.springframework.web.servlet.view.xml.MarshallingView">
+					<property name="marshaller">
+						<bean class="org.springframework.oxm.xstream.XStreamMarshaller">
+							<property name="streamDriver">
+								<bean class="com.thoughtworks.xstream.io.xml.StaxDriver" />
+							</property>
+						</bean>
+						<!-- <bean class="org.springframework.oxm.jaxb.Jaxb2Marshaller" > <property 
+							name="classesToBeBound"> <array> <value>cn.com.bettle.net.controller.Shop</value> 
+							</array> </property> </bean> -->
+					</property>
+				</bean>
+			</list>
+		</property>
+	</bean>
+
+	<bean class="org.springframework.web.servlet.view.BeanNameViewResolver">
+		<property name="order" value="5" />
+	</bean>
+	<!-- 配置 JSP视图解析器 -->
+	<bean
+		class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<property name="order" value="10" />
+		<!-- <property name="viewClass"
+			value="org.springframework.web.servlet.view.JstlView" /> -->
+		<property name="prefix" value="/WEB-INF/jsp/" />
+		<property name="suffix" value=".jsp" />
+		<property name="contentType" value="text/html;charset=UTF-8" />
+	</bean>
+
+	<bean id="exceptionHandler" class="cn.com.bettle.net.exception.BettleExceptionHandler" />
+
+</beans>

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+	<bettle>
+		<xml name="dao" 		        filePath="classpath:dao.xml"                 autoReload="true" interval="" listener="cn.com.bettle.code.appcontext.context.DaoListener" parser="cn.com.bettle.code.appcontext.context.DaoContext"/>
+		<xml name="service-interceptor" filePath="classpath:service-interceptor.xml" autoReload="true" interval="" listener="cn.com.bettle.code.appcontext.context.ServiceInterceptorListener" parser="cn.com.bettle.code.appcontext.context.ServiceInterceptorContext"/>
+		<xml name="bettle-listen" 		filePath="classpath:bettle-listen.xml" 		 autoReload="true" interval="" listener="cn.com.bettle.code.appcontext.context.BettleListener" parser="cn.com.bettle.code.appcontext.context.BettleListenerContext"/>
+		<properties name="variables"    filePath="classpath:variables.cfg"           autoReload="true" interval="" listener="cn.com.bettle.code.appcontext.context.PropertieListener" parser="cn.com.bettle.code.appcontext.context.PropertieContext"/>
+	</bettle>
+</configuration>

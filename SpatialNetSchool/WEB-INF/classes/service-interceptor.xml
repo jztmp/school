@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<interceptors>  
+  
+  			
+   			<!-- 同一个服务可以配置多个拦截器，配置在下面的拦截器运行在配置在上面的拦截器前面-->
+	        <item service="SQL_SERVICE" interceptor="cn.com.bettle.logic.interceptor.SqlServieInterceptor"  >  
+	            <property name="sqlId" value="user-getUser"/>  
+	            <property name="sqlActive" value="loadList"/>  
+	            <property name="daoName" value="MySqlMap"/>
+	        </item> 
+
+	         <item service="SQL_SERVICE" interceptor="cn.com.bettle.logic.interceptor.SqlServieInterceptor2"  >  
+	            <property name="sqlId" value="user-getUser"/>  
+	            <property name="sqlActive" value="loadList"/>  
+	            <property name="daoName" value="MySqlMap"/>
+	        </item> 
+
+</interceptors>
+
