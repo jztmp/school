@@ -836,7 +836,7 @@ public class SchoolService extends CService implements ISchoolService{
        double b = rad(lon1) - rad(lon2);  
        double s = 2 * Math.asin(Math.sqrt(Math.pow(Math.sin(a/2),2)+Math.cos(radLat1)*Math.cos(radLat2)*Math.pow(Math.sin(b/2),2)));  
        s = s * EARTH_RADIUS;  
-       s = Math.round(s);
+       //s = Math.round(s);
        //s = Math.round(s * 10000) / 10000;  
        return s;  
     }
@@ -1015,8 +1015,8 @@ public class SchoolService extends CService implements ISchoolService{
 			sqlMapDAO2.insert("school.saveGpsMemory", params);
 			
 			params.put("BUS_ID","ff8080814efd9739014efebf7010003f");
-			params.put("latitude", 32.074333f);
-			params.put("longitude",118.80896f);
+			params.put("latitude", 32.072252f);
+			params.put("longitude",118.813795f);
 			params.put("altitude", 100.0);
 			sqlMapDAO2.insert("school.saveGpsMemory", params);
 			
@@ -1048,7 +1048,7 @@ public class SchoolService extends CService implements ISchoolService{
 			for (Map<String,Object> item : list){
 				 lon2 = Double.parseDouble(item.get("LONGITUDE").toString());
 				 lat2 = Double.parseDouble(item.get("LATITUDE").toString());
-				 distance = getDistance(lon1, lat1, lon2, lat2) * 0.621;
+				 distance = getDistance(lon1, lat1, lon2, lat2) * 0.000621371192237;
 				 item.put("DISTANCE",  distance);
 			}
 			return list;
