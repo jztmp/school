@@ -66,9 +66,11 @@ public interface ISchoolService extends IService {
 	
 	public void saveGPS2(String gpsString) throws RuntimeException; 
 	
-	public  List<Map<String, Object>> getodb2HistryDate(LinkedHashMap params) throws RuntimeException;
+	public PageInfo getodb2HistryDate(LinkedHashMap params) throws RuntimeException;
 	
 	public void initBus(LinkedHashMap p);
+	
+	public  List<Map<String, Object>> getodb2Date(LinkedHashMap params) throws RuntimeException;
 	
 	public Map getodb2CurrentDate(LinkedHashMap params) throws RuntimeException;
 	
@@ -85,5 +87,4 @@ public interface ISchoolService extends IService {
 
 
 	void sendMessageParents(LinkedHashMap params) throws ServiceException;
-	
 }

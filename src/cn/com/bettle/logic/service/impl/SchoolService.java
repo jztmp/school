@@ -996,19 +996,38 @@ public class SchoolService extends CService implements ISchoolService{
 			//#{BUS_ID}, #{latitude}, #{longitude}, #{altitude}, #{gpsDate}, #{speed}, #{direct}
 			Map<String,Object> params = new HashMap<String, Object>();
 			params.put("BUS_ID","ff8080814f097d84014f097e389d0001");
-			params.put("latitude", 100.0f);
-			params.put("longitude",100.0f);
+			params.put("latitude", 32.074333f);
+			params.put("longitude",118.80894f);
 			params.put("altitude", 100.0);
 			params.put("gpsDate", new Date(System.currentTimeMillis()));
-			
 			sqlMapDAO2.insert("school.saveGpsMemory", params);
+			
+			params.put("BUS_ID","ff8080814f097d84014f097d84970000");
+			params.put("latitude", 32.074333f);
+			params.put("longitude",118.80895f);
+			params.put("altitude", 100.0);
+			sqlMapDAO2.insert("school.saveGpsMemory", params);
+			
+			params.put("BUS_ID","ff8080814efd9739014efebfeb170040");
+			params.put("latitude", 32.074333f);
+			params.put("longitude",118.80896f);
+			params.put("altitude", 100.0);
+			sqlMapDAO2.insert("school.saveGpsMemory", params);
+			
+			params.put("BUS_ID","ff8080814efd9739014efebf7010003f");
+			params.put("latitude", 32.074333f);
+			params.put("longitude",118.80896f);
+			params.put("altitude", 100.0);
+			sqlMapDAO2.insert("school.saveGpsMemory", params);
+			
 		} catch (ServiceException e) {
 			e.printStackTrace();
 		}
 		
 	}
+	
 	@Override
-	public List<Map<String, Object>> getodb2HistryDate(LinkedHashMap params) throws RuntimeException {
+	public List<Map<String, Object>> getodb2Date(LinkedHashMap params) throws RuntimeException {
 		try{
 			ISqlMapDAO sqlMapDAO2 = getSqlMapDAO("MemorySqlMap");
 			List<Map<String, Object>> list = sqlMapDAO2.loadList("school.getAllBusGpsMemory", params);
@@ -1025,10 +1044,12 @@ public class SchoolService extends CService implements ISchoolService{
 		  	
 		  	double lon2;
 		  	double lat2;
+		  	double distance;
 			for (Map<String,Object> item : list){
 				 lon2 = Double.parseDouble(item.get("LONGITUDE").toString());
 				 lat2 = Double.parseDouble(item.get("LATITUDE").toString());
-				item.put("DISTANCE", getDistance(lon1, lat1, lon2, lat2));
+				 distance = getDistance(lon1, lat1, lon2, lat2) * 0.621;
+				 item.put("DISTANCE",  distance);
 			}
 			return list;
 		}catch(Exception e){
@@ -1036,6 +1057,24 @@ public class SchoolService extends CService implements ISchoolService{
 		}
 	}	
 	
+		@Override
+	public PageInfo getodb2HistryDate(LinkedHashMap params) throws RuntimeException {
+		try{
+			ISqlMapDAO sqlMapDAO = getSqlMapDAO("MySqlMap");
+			Map busf = sqlMapDAO.loadOne("school.getBusfromto", params);
+			int pageNum  = BasicUitl.DoubleToInt2(params.get("pageNum"), 0);
+			int pageSize = BasicUitl.DoubleToInt2(params.get("pageSize"), 0);
+			if (busf == null){				
+				return sqlMapDAO.loadPageInfo("school.getodb2HistryGPS", params, pageNum, pageSize);
+			}else{
+				//params.put("PID",busf.get("BUS_NUMBER_TO"));
+				return sqlMapDAO.loadPageInfo("school.getBusfHistryGPS", busf, pageNum, pageSize);
+			}
+			
+		}catch(Exception e){
+			throw new RuntimeException(e);
+		}
+	}	
 	
 	/*==================================================service  end======================================*/
 	/*--------------------------------------------------cilent-------------------------------------------*/

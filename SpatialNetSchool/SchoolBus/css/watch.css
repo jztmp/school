@@ -24,7 +24,7 @@ body {
 }
 
 .details-content .user-heart{
-    margin-top: 50px;
+    margin-top: 10px;
 }
 
 .details-content .user-heart .dividing-line{
@@ -38,7 +38,7 @@ body {
 
 .details-content .user-heart .heart-number{
     color:#009948;
-    font-size: 50pt;
+    font-size: 40pt;
     font-weight: bold;
     padding-top: 15px;
     text-align:center;
@@ -50,20 +50,17 @@ body {
     color: #006699;
     font-size: 15pt;
     font-weight: bold;
-    margin-left: -30px;
     background-image: url(../img/user.png);
     background-position: center center;
     background-repeat: no-repeat;
 }
 
 .details-content .user-infor .tel{
-
     color: grey;
     font-size: 13pt;
     padding-bottom: 5px;
     margin-bottom: 10px;
     margin-top: 10px;
-    margin-left: -30px;
     background-image: url(../img/telephone.png);
     background-position: center center;
     background-repeat: no-repeat;
@@ -72,10 +69,16 @@ body {
 .details-content .user-infor .time{
     color: grey;
     font-size: 13pt;
-    margin-left: -150px;
     background-image: url(../img/notice.png);
-    background-position: center center;
+    background-position: center top;
     background-repeat: no-repeat;
+}
+.time1{
+    color: grey;
+    font-size: 13pt;
+    width: 100px;
+    margin: 0 auto;
+    padding-left: 158px;  
 }
 
 .details-content .contentPic img{
@@ -115,5 +118,10 @@ body {
 .htime{
 	color: white;
     font-size: 25pt;
+    margin-left: 60px;
+}
+.htime2{
+	color: white;
+    font-size: 18pt;
     margin-left: 60px;
 }
